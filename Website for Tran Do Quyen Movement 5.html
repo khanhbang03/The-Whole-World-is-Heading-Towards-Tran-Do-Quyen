@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tran Do Quyen</title>
+<style>
+    body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: 'Arial', sans-serif;
+        background: radial-gradient(circle at center, #ff9a9e, #fad0c4);
+        color: #fff;
+    }
+
+    h1 {
+        position: absolute;
+        top: 15%;
+        width: 100%;
+        text-align: center;
+        font-size: 3rem;
+        text-shadow: 0 0 10px #fff, 0 0 20px #ff0;
+    }
+
+    p {
+        position: absolute;
+        top: 30%;
+        width: 100%;
+        text-align: center;
+        font-size: 1.5rem;
+        text-shadow: 0 0 5px #fff, 0 0 10px #ff0;
+    }
+
+    button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 12px 25px;
+        font-size: 1.2rem;
+        background-color: #ff4500;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #fff;
+        transition: background 0.3s, transform 0.2s;
+        z-index: 2;
+    }
+
+    button:hover {
+        background-color: #ff6347;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+</style>
+</head>
+<body>
+
+<h1>The Whole World is Heading Towards</h1>
+<p>🌟 Tran Do Quyen 🌟</p>
+<button onclick="alert('Welcome to Tran Do Quyen\'s world!')">Enter</button>
+<canvas id="particleCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const particles = [];
+const particleCount = 250;
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+
+function random(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+class Particle {
+    constructor() {
+        this.reset();
+    }
+    reset() {
+        this.x = random(0, canvas.width);
+        this.y = random(0, canvas.height);
+        this.size = random(2, 4);
+        this.speed = random(0.5, 1.5);
+        this.trail = [];
+    }
+    update() {
+        const dx = centerX - this.x;
+        const dy = centerY - this.y;
+        const distance = Math.sqrt(dx*dx + dy*dy);
+        const acceleration = Math.min(5, 5 / distance * 50);
+        this.x += (dx / distance) * (this.speed + acceleration);
+        this.y += (dy / distance) * (this.speed + acceleration);
+
+        // Add current position to trail
+        this.trail.push({x: this.x, y: this.y});
+        if (this.trail.length > 12) this.trail.shift();
+
+        if (distance < 5) this.reset();
+    }
+    draw() {
+        // Draw trail
+        for (let i = 0; i < this.trail.length; i++) {
+            const point = this.trail[i];
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, this.size * (i/12), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255,255,255,${i/this.trail.length})`;
+            ctx.fill();
+        }
+        // Draw main particle
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+    }
+}
+
+for(let i = 0; i < particleCount; i++) {
+    particles.push(new Particle());
+}
+
+function drawConnections() {
+    for(let i = 0; i < particles.length; i++) {
+        for(let j = i+1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if(dist < 100) {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(255,255,255,${1 - dist/100})`;
+                ctx.lineWidth = 1;
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.stroke();
+            }
+        }
+    }
+}
+
+function animate() {
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for(let particle of particles) {
+        particle.update();
+        particle.draw();
+    }
+
+    drawConnections();
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>

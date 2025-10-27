@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tran Do Quyen</title>
+<style>
+    body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: 'Arial', sans-serif;
+        background: radial-gradient(circle at center, #ff9a9e, #fad0c4);
+        color: #fff;
+    }
+
+    h1 {
+        position: absolute;
+        top: 10%;
+        width: 100%;
+        text-align: center;
+        font-size: 3rem;
+        text-shadow: 0 0 10px #fff, 0 0 20px #ff0;
+        z-index: 2;
+    }
+
+    p {
+        position: absolute;
+        top: 20%;
+        width: 100%;
+        text-align: center;
+        font-size: 1.5rem;
+        text-shadow: 0 0 5px #fff, 0 0 10px #ff0;
+        z-index: 2;
+    }
+
+    button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 12px 25px;
+        font-size: 1.2rem;
+        background-color: #ff4500;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #fff;
+        transition: background 0.3s, transform 0.2s;
+        z-index: 2;
+    }
+
+    button:hover {
+        background-color: #ff6347;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+    }
+
+    #controls {
+        position: absolute;
+        top: 5%;
+        left: 5%;
+        background: rgba(0,0,0,0.5);
+        padding: 10px 15px;
+        border-radius: 10px;
+        z-index: 3;
+    }
+
+    #controls label {
+        display: block;
+        margin: 5px 0;
+        font-size: 0.9rem;
+    }
+</style>
+</head>
+<body>
+
+<h1>The Whole World is Heading Towards</h1>
+<p>🌟 Tran Do Quyen 🌟</p>
+<button onclick="alert('Welcome to Tran Do Quyen\'s world!')">Enter</button>
+
+<div id="controls">
+    <label>Particle Color: <input type="color" id="particleColor" value="#00ffff"></label>
+    <label>Trail Color: <input type="color" id="trailColor" value="#00ffff"></label>
+    <label>Connection Color: <input type="color" id="connectionColor" value="#00ffff"></label>
+    <label>Sparkle Color: <input type="color" id="sparkleColor" value="#ffffff"></label>
+    <label>Motion Style: 
+        <select id="motionStyle">
+            <option value="straight">Straight</option>
+            <option value="spiral">Spiral</option>
+            <option value="swirl">Swirl</option>
+        </select>
+    </label>
+</div>
+
+<canvas id="particleCanvas"></canvas>
+
+<script>
+const config = {
+    particleColor: '#00ffff',
+    trailColor: 'rgba(0,255,255,', 
+    connectionColor: 'rgba(0,255,255,', 
+    sparkleColor: 'rgba(255,255,255,0.8)',
+    particleCount: 250,
+    maxConnectionDistance: 100,
+    trailLength: 12,
+    motionStyle: 'straight'
+};
+
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const particles = [];
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+
+function random(min, max) { return Math.random() * (max - min) + min; }
+
+class Particle {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = random(0, canvas.width);
+        this.y = random(0, canvas.height);
+        this.size = random(2, 4);
+        this.speed = random(0.5, 1.5);
+        this.trail = [];
+        this.angle = random(0, Math.PI*2);
+    }
+    update() {
+        const dx = centerX - this.x;
+        const dy = centerY - this.y;
+        const distance = Math.sqrt(dx*dx + dy*dy);
+        const acceleration = Math.min(5, 5 / distance * 50);
+        let moveX = dx / distance * (this.speed + acceleration);
+        let moveY = dy / distance * (this.speed + acceleration);
+
+        if(config.motionStyle === 'spiral') {
+            const spiralFactor = 0.05 * distance/100;
+            moveX += -dy * spiralFactor;
+            moveY += dx * spiralFactor;
+        } else if(config.motionStyle === 'swirl') {
+            const swirlFactor = 0.03;
+            moveX += Math.cos(this.angle) * swirlFactor * distance/50;
+            moveY += Math.sin(this.angle) * swirlFactor * distance/50;
+            this.angle += 0.05;
+        }
+
+        this.x += moveX;
+        this.y += moveY;
+
+        this.trail.push({x: this.x, y: this.y});
+        if(this.trail.length > config.trailLength) this.trail.shift();
+
+        if(distance < 5) this.reset();
+    }
+    draw() {
+        for(let i=0;i<this.trail.length;i++){
+            const p=this.trail[i];
+            ctx.beginPath();
+            ctx.arc(p.x,p.y,this.size*(i/config.trailLength),0,Math.PI*2);
+            ctx.fillStyle=`${config.trailColor}${i/this.trail.length})`;
+            ctx.fill();
+        }
+        ctx.beginPath();
+        ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+        ctx.fillStyle=config.particleColor;
+        ctx.fill();
+    }
+}
+
+for(let i=0;i<config.particleCount;i++){particles.push(new Particle());}
+
+function drawConnections(){
+    for(let i=0;i<particles.length;i++){
+        for(let j=i+1;j<particles.length;j++){
+            const dx=particles[i].x-particles[j].x;
+            const dy=particles[i].y-particles[j].y;
+            const dist=Math.sqrt(dx*dx+dy*dy);
+            if(dist<config.maxConnectionDistance){
+                ctx.beginPath();
+                ctx.strokeStyle=`${config.connectionColor}${1-dist/config.maxConnectionDistance})`;
+                ctx.lineWidth=1;
+                ctx.moveTo(particles[i].x,particles[i].y);
+                ctx.lineTo(particles[j].x,particles[j].y);
+                ctx.stroke();
+                if(Math.random()<0.02){
+                    const sparkX=particles[i].x+(particles[j].x-particles[i].x)*Math.random();
+                    const sparkY=particles[i].y+(particles[j].y-particles[i].y)*Math.random();
+                    ctx.beginPath();
+                    ctx.arc(sparkX,sparkY,1.5,0,Math.PI*2);
+                    ctx.fillStyle=config.sparkleColor;
+                    ctx.fill();
+                }
+            }
+        }
+    }
+}
+
+function animate(){
+    ctx.fillStyle='rgba(0,0,0,0.1)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    for(let particle of particles){particle.update(); particle.draw();}
+    drawConnections();
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+// =================== LIVE CONTROLS ===================
+document.getElementById('particleColor').addEventListener('input',e=>{config.particleColor=e.target.value;});
+document.getElementById('trailColor').addEventListener('input',e=>{
+    const c=e.target.value;
+    const rgb=parseInt(c.slice(1,3),16)+','+parseInt(c.slice(3,5),16)+','+parseInt(c.slice(5,7),16);
+    config.trailColor=`rgba(${rgb},`;
+});
+document.getElementById('connectionColor').addEventListener('input',e=>{
+    const c=e.target.value;
+    const rgb=parseInt(c.slice(1,3),16)+','+parseInt(c.slice(3,5),16)+','+parseInt(c.slice(5,7),16);
+    config.connectionColor=`rgba(${rgb},`;
+});
+document.getElementById('sparkleColor').addEventListener('input',e=>{config.sparkleColor=e.target.value;});
+document.getElementById('motionStyle').addEventListener('change',e=>{config.motionStyle=e.target.value;});
+
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+</script>
+
+</body>
+</html>

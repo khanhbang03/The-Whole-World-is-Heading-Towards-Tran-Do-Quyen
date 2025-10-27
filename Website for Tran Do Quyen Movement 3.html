@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tran Do Quyen</title>
+<style>
+    body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: 'Arial', sans-serif;
+        background: radial-gradient(circle at center, #ff9a9e, #fad0c4);
+        color: #fff;
+    }
+
+    h1 {
+        position: absolute;
+        top: 20%;
+        width: 100%;
+        text-align: center;
+        font-size: 3rem;
+        text-shadow: 0 0 10px #fff, 0 0 20px #ff0;
+    }
+
+    p {
+        position: absolute;
+        top: 35%;
+        width: 100%;
+        text-align: center;
+        font-size: 1.5rem;
+        text-shadow: 0 0 5px #fff, 0 0 10px #ff0;
+    }
+
+    button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 12px 25px;
+        font-size: 1.2rem;
+        background-color: #ff4500;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #fff;
+        transition: background 0.3s, transform 0.2s;
+        z-index: 2;
+    }
+
+    button:hover {
+        background-color: #ff6347;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+</style>
+</head>
+<body>
+
+<h1>The Whole World is Heading Towards</h1>
+<p>🌟 Tran Do Quyen 🌟</p>
+<button onclick="alert('Welcome to Tran Do Quyen\'s world!')">Enter</button>
+<canvas id="particleCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const particleCount = 300;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    function random(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    class Particle {
+        constructor() {
+            this.reset();
+        }
+        reset() {
+            this.x = random(0, canvas.width);
+            this.y = random(0, canvas.height);
+            this.size = random(2, 5);
+            this.speed = random(0.5, 1.5);
+        }
+        update() {
+            const dx = centerX - this.x;
+            const dy = centerY - this.y;
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            const acceleration = Math.min(5, 5 / distance * 50); // accelerate as it gets closer
+            this.x += (dx / distance) * (this.speed + acceleration);
+            this.y += (dy / distance) * (this.speed + acceleration);
+
+            if (distance < 5) this.reset();
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+        }
+    }
+
+    for(let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for(let particle of particles) {
+            particle.update();
+            particle.draw();
+        }
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+</script>
+
+</body>
+</html>
